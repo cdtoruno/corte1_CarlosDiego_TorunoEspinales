@@ -26,7 +26,8 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Product::create($request->all());
+        return response()->json(['status' => 'success', 'message' => 'Producto creado correctamente']);  
     }
 
     /**
@@ -37,7 +38,8 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        //
+        $product = Product::find($id);
+        return response()->json(['status' => 'success', 'data' => $product]);
     }
 
     /**
@@ -49,7 +51,8 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        Product::find($id)->update($request->all());
+        return response()->json(['status' => 'success', 'message' => 'Producto actualizado correctamente']);
     }
 
     /**
