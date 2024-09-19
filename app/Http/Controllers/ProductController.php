@@ -1,69 +1,119 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Product;
 
 use Illuminate\Http\Request;
+use App\Models\Product;  // Usar el modelo Product
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $product = Product::all();
-        return response()->json(['status' => 'success', 'data' => $product]);
+        // Obtener todos los productos y ordenar por categoría y nombre
+        $products = Product::select('codigo', 'nombre', 'descripcion', 'categoria', 'precio', 'stock')
+            ->orderBy('categoria')
+            ->orderBy('nombre')
+            ->get();
+        
+        return response()->json(['status' => 'success', 'data' => $products]);
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        Product::create($request->all());
-        return response()->json(['status' => 'success', 'message' => 'Producto creado correctamente']);  
+        try {
+            // Crear un nuevo producto
+            $product = Product::create($request->all());
+
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'Producto creado exitosamente', 
+                'data' => $product
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
+        }
     }
 
     /**
      * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(string $codigo)
     {
-        $product = Product::find($id);
-        return response()->json(['status' => 'success', 'data' => $product]);
+        try {
+            // Buscar un producto por su código (clave primaria)
+            $product = Product::where('codigo', $codigo)->firstOrFail();
+
+            return response()->json([
+                'status' => 'success', 
+                'data' => $product
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Producto no encontrado']);
+        }
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, string $codigo)
     {
-        Product::find($id)->update($request->all());
-        return response()->json(['status' => 'success', 'message' => 'Producto actualizado correctamente']);
+        try {
+            // Buscar el producto por el campo 'codigo'
+            $product = Product::where('codigo', $codigo)->firstOrFail();
+    
+            // Actualizar el producto con todos los datos recibidos
+            $product->update($request->all());
+    
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'Producto actualizado exitosamente', 
+                'data' => $product
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Producto no encontrado'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(string $codigo)
     {
-        Product::destroy($id);
-        return response()->json(['status' => 'success', 'message' => 'Producto eliminado correctamente']);
+        try {
+            // Buscar el producto por el campo 'codigo'
+            $product = Product::where('codigo', $codigo)->firstOrFail();
+    
+            // Eliminar el producto
+            $product->delete();
+    
+            return response()->json([
+                'status' => 'success', 
+                'message' => 'Producto eliminado exitosamente'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Producto no encontrado'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }
